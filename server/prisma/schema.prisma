@@ -1,0 +1,226 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+// Seed configuration
+// Run with: pnpm prisma:seed
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Model
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @default(USER)
+  avatar        String?
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  cart          Cart?
+  wishlist      Wishlist?
+  orders        Order[]
+  reviews       Review[]
+  
+  @@map("users")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+// Category Model
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  image       String
+  slug        String    @unique
+  featured    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  products    Product[]
+  
+  @@map("categories")
+}
+
+// Product Model
+model Product {
+  id                 String    @id @default(uuid())
+  name               String
+  description        String    @db.Text
+  price              Decimal   @db.Decimal(10, 2)
+  images             String[]
+  categoryId         String
+  category           Category  @relation(fields: [categoryId], references: [id])
+  tags               String[]
+  rating             Float     @default(0)
+  reviewsCount       Int      @default(0)
+  stock              Int       @default(0)
+  featured           Boolean   @default(false)
+  isNew              Boolean   @default(false)
+  onSale             Boolean   @default(false)
+  discount           Int?      @default(0)
+  sustainabilityScore Int?      @default(0)
+  colors             String[]
+  sizes              String[]
+  materials          String[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  
+  cartItems          CartItem[]
+  wishlistItems      WishlistItem[]
+  orderItems         OrderItem[]
+  reviews            Review[]
+  
+  @@index([categoryId])
+  @@index([featured])
+  @@index([onSale])
+  @@index([isNew])
+  @@index([rating])
+  @@index([stock])
+  @@index([createdAt])
+  @@map("products")
+}
+
+// Review Model
+model Review {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating    Int      @db.SmallInt
+  title     String
+  comment   String   @db.Text
+  helpful   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([productId, userId])
+  @@index([productId])
+  @@index([userId])
+  @@map("reviews")
+}
+
+// Cart Model
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  updatedAt DateTime   @updatedAt
+  
+  @@map("carts")
+}
+
+// CartItem Model
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@map("cart_items")
+}
+
+// Wishlist Model
+model Wishlist {
+  id        String          @id @default(uuid())
+  userId    String          @unique
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WishlistItem[]
+  updatedAt DateTime        @updatedAt
+  
+  @@map("wishlists")
+}
+
+// WishlistItem Model
+model WishlistItem {
+  id        String    @id @default(uuid())
+  wishlistId String
+  wishlist  Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@unique([wishlistId, productId])
+  @@index([wishlistId])
+  @@map("wishlist_items")
+}
+
+// Order Model
+model Order {
+  id              String      @id @default(uuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  items           OrderItem[]
+  subtotal        Decimal     @db.Decimal(10, 2)
+  shipping        Decimal     @db.Decimal(10, 2)
+  tax             Decimal     @db.Decimal(10, 2)
+  total           Decimal     @db.Decimal(10, 2)
+  shippingAddress Json
+  status          OrderStatus @default(PENDING)
+  paymentMethod   String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+// OrderItem Model
+model OrderItem {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  
+  @@index([orderId])
+  @@map("order_items")
+}
+
+// Room Model (Shop the Room)
+model Room {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  image       String
+  hotspots    Json       // Array of {x, y, productId}
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  
+  @@map("rooms")
+}
+

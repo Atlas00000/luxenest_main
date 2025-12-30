@@ -1,0 +1,15 @@
+# Vercel ignore file - exclude unnecessary files from deployment
+node_modules/
+.next/
+.env.local
+.env.development.local
+.env.test.local
+*.log
+.git/
+.gitignore
+README.md
+*.md
+coverage/
+.nyc_output/
+*.tsbuildinfo
+

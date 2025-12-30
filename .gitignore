@@ -1,27 +1,75 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
 
-# dependencies
-/node_modules
+# Next.js (Client)
+client/.next/
+client/out/
+client/.vercel
+client/*.tsbuildinfo
+client/next-env.d.ts
 
-# next.js
-/.next/
-/out/
+# Production builds
+client/build/
+server/dist/
+server/build/
 
-# production
-/build
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+client/.env.local
+server/.env
 
-# debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# env files
-.env*
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# vercel
-.vercel
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# typescript
+# TypeScript
 *.tsbuildinfo
-next-env.d.ts
+
+# Prisma
+server/prisma/migrations/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+
+# Uploads
+server/uploads/
+uploads/
